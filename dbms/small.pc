@@ -1,0 +1,591 @@
+/* -*- Mode: C; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*-
+ * Bruce C. Miller
+ * Oracle Project - investment bank
+ * 4.08.03
+ */
+
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <ctype.h>
+#include <sqlca.h>
+#include <sql2oci.h>
+#include <oci.h>
+#include <orl.h>
+
+#define QUIT 10
+
+void displayMenu();
+int getUserChoice();
+void getIdPass(char[]);
+void processRequest(int);
+void allowUserToView();
+void listInvestor();
+void printOwns();
+void listName();
+void addInvestor();
+void addCredit();
+void deleteInvestor();
+void deleteMultiInvestor();
+void updateInvestor();
+void recursiveQuery();
+
+/* Investor */
+typedef struct {        
+    varchar ssn[10];
+    varchar fname[11];
+    varchar minit[2];
+    varchar lname[11];
+    varchar st_num[7];
+    varchar street[13];
+    varchar area_code[8];
+    varchar phone_num[8];   
+    int day;    
+    int month;
+    int year;
+} investor_record;
+
+/* Credits */
+typedef struct {
+    varchar sendacctno[6];
+    varchar sender[16];
+    float   amt; 
+    varchar sendbank[16];
+    int day;
+    int month;
+    int year;
+    varchar addacctno[6];
+} credit_record;
+
+/* Account */
+typedef struct {
+    float balance;
+    varchar acctno[6];
+    varchar acct_type[6];
+    varchar invssn[10];
+} account_record;
+
+/* Stock indicator */
+typedef struct {
+    short symbol_ind;
+    short amount_ind;
+    short invssn_ind;
+} owns_record_indicator;
+
+/* Stock */
+typedef struct {
+    varchar symbol[5];
+    varchar amount[6];
+    varchar invssn[10];
+} owns_record;
+
+/* Investor indicator */
+typedef  struct {
+    short ssn_ind;
+    short fname_ind;
+    short minit_ind;
+    short lname_ind;
+    short st_num_ind;
+    short street_ind;
+    short area_code_ind;
+    short phone_num_ind;
+} investor_record_indicator;
+
+typedef struct {
+    varchar ossn[10];
+} recursive_record;
+
+void main (int argc, char * argv) {
+    int choice;
+
+    EXEC SQL begin declare section;
+    varchar userid[10];
+    EXEC SQL end declare section;
+
+    getIdPass(userid.arr);
+    userid.len = strlen(userid.arr);
+
+    EXEC SQL connect :userid;
+    if ( (sqlca.sqlcode < 0) || (sqlca.sqlcode > 0) ) {
+        printf("Connection failed!!\n");
+        exit(1);
+    }
+    printf("Connected to Oracle!!!");
+
+    choice = getUserChoice();
+    while (choice != QUIT) {
+        processRequest(choice);
+        allowUserToView();
+        choice = getUserChoice();
+    }
+    EXEC SQL commit release;
+}
+
+/* Lets user view output before menu. */
+void  allowUserToView() {
+    printf("\n\n\tEnter to continue\n");
+    getchar();
+}
+/* Get the menu choice. */
+int getUserChoice(void) {
+    int chce;
+    displayMenu();
+    scanf("%d", &chce);
+    getchar();
+    return chce;
+}
+
+/* Displays the menu. */
+void displayMenu(void) {
+    system("clear");
+    printf("Enter a number\n");
+    printf("*****************\n\n");
+    printf("\t1. Display Investor info (view row)\n");
+    printf("\t2. Display Owns info (view row)\n");
+    printf("\t3. Display investments info(view row)\n");
+    printf("\t4. Add an Investor (add row)\n");
+    printf("\t5. Add a Credit Entry (add row w/ foreign key)\n");
+    printf("\t6. Delete an Employee (delete row no foreign key)\n");
+    printf("\t7. Delete an Investor (delete row w/ foreign key)\n");
+    printf("\t8. Update an Investor (update a value)\n");
+    printf("\t9. Find SSNs of subordinates of a manager (recursive query)\n");
+    printf("\t10. Quit\n");
+}
+
+/* Prompt for input. */
+void prompt(char pt[], char resp[]) {
+    char ch;
+    int i = 0;
+    printf("%s\n", pt);
+    while ( (ch = getchar()) != '\n') {
+        resp[i] = ch;
+        i++;
+    }
+    resp[i] = '\0';
+}
+
+/* Grabs userid. */
+void getIdPass(char id[]) {
+    printf("Enter your Oracle logon id\n");
+    scanf("%s", id); 
+    getchar(); /* get rid of EOL */
+}
+
+/* Process menu choice. */
+void processRequest(int num) {
+    switch (num) {
+    case 1:
+        listInvestor();
+        break;
+    case 2:
+        printOwns();
+        break;
+    case 3:
+        listName();
+        break;
+    case 4:
+        addInvestor();
+        break;
+    case 5:
+        addCredit();
+        break;
+    case 6:
+        deleteInvestor();
+        break;
+    case 7:
+        deleteMultiInvestor();
+        break;
+    case 8:
+        updateInvestor();
+        break;
+    case 9:
+        recursiveQuery();
+        break;
+    case 10:
+        return;
+    default:
+        return;
+    }
+    return;
+}
+
+/* Display selected investor tuple. */
+void listInvestor() {
+    EXEC SQL begin declare section;
+    varchar issn[10];
+    investor_record irec;
+    investor_record_indicator irec_ind;
+    EXEC SQL end declare section;
+
+    printf("Enter a ssn for desired investor: ");
+    scanf("%9s", issn.arr);
+    getchar();
+    
+    issn.len = strlen(issn.arr);
+
+    EXEC SQL select i.ssn, i.name.fname, i.name.minit, i.name.lname,
+        i.address.st_num, i.address.street, i.phone.area_code, 
+        i.phone.phone_num, i.bdate.day, i.bdate.month, i.bdate.year  
+        into :irec.ssn       indicator :irec_ind.ssn_ind, 
+        :irec.fname     indicator :irec_ind.fname_ind,
+        :irec.minit     indicator :irec_ind.minit_ind,
+        :irec.lname     indicator :irec_ind.lname_ind,
+        :irec.st_num    indicator :irec_ind.st_num_ind,
+        :irec.street    indicator :irec_ind.street_ind,
+        :irec.area_code indicator :irec_ind.area_code_ind,
+        :irec.phone_num indicator :irec_ind.phone_num_ind,
+        :irec.day,
+        :irec.month,
+        :irec.year
+        from investor i
+        where i.ssn = :issn;
+    if (sqlca.sqlcode > 0) {
+        printf("Investor (%s) does not exist\n", issn);
+        return;
+    }
+    irec.ssn.arr[irec.ssn.len] = '\0';
+    irec.fname.arr[irec.fname.len] = '\0';
+    irec.minit.arr[irec.minit.len] = '\0';
+    irec.lname.arr[irec.lname.len] = '\0';
+    irec.st_num.arr[irec.st_num.len] = '\0';
+    irec.street.arr[irec.street.len] = '\0';
+    irec.area_code.arr[irec.area_code.len] = '\0';
+    irec.phone_num.arr[irec.phone_num.len] = '\0'; 
+
+    printf("SSN:                %s\n", irec.ssn.arr);
+    printf("Name:               %s %s. %s\n", irec.fname.arr, irec.minit.arr, irec.lname.arr);
+    printf("Address:            %s %s\n", irec.st_num.arr, irec.street.arr);
+    printf("Phone Number:       %s-%s\n", irec.area_code.arr, irec.phone_num.arr);
+    printf("Birthdate:          %d/%d/%d\n", irec.day, irec.month, irec.year);
+
+}
+
+/* Display stocked owned by investor. */
+void printOwns() {
+    EXEC SQL begin declare section;
+    varchar issn[10]; 
+    owns_record orec;
+    owns_record_indicator orec_ind;
+    EXEC SQL end declare section;
+    prompt("Enter a ssn:   ", issn.arr);
+    issn.len = strlen(issn.arr);
+
+    EXEC SQL declare owns_cursor cursor for
+        select o.invssn, o.symbol, o.amount
+                   from owns o
+                   where o.invssn = :issn;
+    EXEC SQL open owns_cursor;
+    EXEC SQL fetch owns_cursor into
+        :orec.invssn   indicator   :orec_ind.invssn_ind,   
+        :orec.symbol   indicator    :orec_ind.symbol_ind,
+        :orec.amount   indicator    :orec_ind.symbol_ind;
+    printf("print sql code: %d\n" , sqlca.sqlcode);
+    while (sqlca.sqlcode == 0) {
+        orec.invssn.arr[orec.invssn.len] = '\0';
+        printf("SSN:          %s\n",orec.invssn.arr);
+        if (orec_ind.symbol_ind == 0) {
+            orec.symbol.arr[orec.symbol.len] = '\0';
+            printf("SYMBOL:       %s\n", orec.symbol.arr);
+        }
+        printf("\n");
+        if (orec_ind.amount_ind == 0) {
+            orec.amount.arr[orec.amount.len] = '\0';
+            printf("AMOUNT:       %s\n", orec.amount.arr);
+        }
+
+        printf("\n");
+        EXEC SQL fetch owns_cursor into
+            :orec indicator :orec_ind;
+    }
+    EXEC SQL close owns_cursor;
+    EXEC SQL commit;
+}
+
+/* List the multiple names. */
+void listName() {
+    EXEC SQL begin declare section;
+    varchar vtype[17];
+    varchar acctno[7];
+    investor_record irec;
+    investor_record_indicator irec_ind;
+     
+    EXEC SQL end declare section;
+    prompt("Enter a stock name(Mutual_fund):     ", vtype.arr);
+    vtype.len = strlen(vtype.arr);
+
+    EXEC SQL declare investments_cursor cursor for
+        select i.name.fname, i.name.minit, i.name.lname, v.acctno
+                   from   investor i, investments v
+                   where  i.ssn = v.invssn and v.type = :vtype;
+
+    EXEC SQL open investments_cursor; /* Execute the select statement. */
+    EXEC SQL fetch investments_cursor
+
+        into  :irec.fname     indicator :irec_ind.fname_ind,
+        :irec.minit     indicator :irec_ind.minit_ind,
+        :irec.lname     indicator :irec_ind.lname_ind,
+        :acctno;
+
+    while (!sqlca.sqlcode) {
+        irec.fname.arr[irec.fname.len] = '\0';
+        printf("%s",irec.fname.arr);
+        if (irec_ind.minit_ind == 0) {
+            irec.minit.arr[irec.minit.len] = '\0';
+            printf("    %s", irec.minit.arr);
+        }
+        printf("\n");
+        if (irec_ind.lname_ind == 0) {
+            irec.lname.arr[irec.lname.len] = '\0';
+            printf("    %s\n", irec.lname.arr);
+        }
+                
+        acctno.arr[acctno.len] = '\0';
+        printf("    %s\n", acctno.arr);
+                
+        EXEC SQL fetch investments_cursor into
+            :irec indicator :irec_ind;
+                
+    }
+    EXEC SQL close investments_cursor;
+    EXEC SQL commit;
+}
+
+/* Adds an investor. */
+void addInvestor() {
+    EXEC SQL begin declare section;
+    varchar temp[4];
+    investor_record irec;
+    EXEC SQL end declare section;
+
+    prompt("Enter a ssn for new investor: ", irec.ssn.arr);
+    irec.ssn.len = strlen(irec.ssn.arr);
+    prompt("Enter a first name for new investor: ", irec.fname.arr);
+    irec.fname.len = strlen(irec.fname.arr);
+    prompt("Enter a middle initial for new investor: ", irec.minit.arr);
+    irec.minit.len = strlen(irec.minit.arr);
+    prompt("Enter a last name for new investor: ", irec.lname.arr);
+    irec.lname.len = strlen(irec.lname.arr);
+    prompt("Enter a street number for new investor: ", irec.st_num.arr);
+    irec.st_num.len = strlen(irec.st_num.arr);
+    prompt("Enter a street for new investor: ", irec.street.arr);
+    irec.street.len = strlen(irec.street.arr);
+    prompt("Enter a area code for new investor: ", irec.area_code.arr);
+    irec.area_code.len = strlen(irec.area_code.arr);
+    prompt("Enter a phone number for new investor: ", irec.phone_num.arr);
+    irec.phone_num.len = strlen(irec.phone_num.arr);
+    printf("Enter a bdate (day) for new investor: \n");
+    scanf("%2s", temp.arr);
+    getchar();
+    irec.day = atoi(temp.arr);
+    printf("Enter a bdate (month) for new investor: \n");
+    scanf("%2s", temp.arr);
+    getchar();
+    irec.month = atoi(temp.arr);
+    printf("Enter a bdate (year) for new investor: \n");
+    scanf("%4s", temp.arr);
+    getchar();
+    irec.year = atoi(temp.arr);
+
+    EXEC SQL set transaction write only;
+    EXEC SQL insert into investor values(
+        name1_type(:irec.fname, :irec.minit, :irec.lname),
+        :irec.ssn,
+        addr_type(:irec.st_num, :irec.street),
+        phone_type(:irec.area_code, :irec.phone_num),
+        date_type(:irec.day, :irec.month, :irec.year)
+        );
+    EXEC SQL commit;
+}
+
+/* Adds a credit and a cooresponding account. */
+void addCredit() {
+    EXEC SQL begin declare section;
+    int tempint;
+    varchar temp[4];
+    credit_record crec;
+    account_record arec;
+    EXEC SQL end declare section;
+
+    prompt("Enter a send acct for new credit: ", crec.sendacctno.arr);
+    crec.sendacctno.len = strlen(crec.sendacctno.arr);
+    prompt("Enter a sender for new credit: ", crec.sender.arr);
+    crec.sender.len = strlen(crec.sender.arr);
+    printf("Enter an amount for new credit: \n");
+    scanf("%6s", temp.arr);
+    getchar();
+    crec.amt = atoi(temp.arr);
+    prompt("Enter a send bank for new credit: ", crec.sendbank.arr);
+    crec.sendbank.len = strlen(crec.sendbank.arr);
+    printf("Enter a day for new credit: \n");
+    scanf("%2s", temp.arr);
+    getchar();
+    crec.day = atoi(temp.arr);
+    printf("Enter a month for new credit: \n");
+    scanf("%2s", temp.arr);
+    getchar();
+    crec.month = atoi(temp.arr);
+    printf("Enter a year for new credit: \n");
+    scanf("%4s", temp.arr);
+    getchar();
+    crec.year = atoi(temp.arr);
+
+    /* Credits need a referencing acct.  Here, we assume that the user wants to
+     * add a new one. */
+    printf("Credits reference an account.\n");
+    prompt("Enter an account number: ", arec.acctno.arr);
+    arec.acctno.len = strlen(arec.acctno.arr);
+    printf("Enter an account balance: \n");
+    scanf("%6s", temp.arr);
+    getchar();
+    arec.balance = atoi(temp.arr);
+    prompt("Enter an account type: ", arec.acct_type.arr);
+    arec.acct_type.len = strlen(arec.acct_type.arr);
+    /* Here, we just assume that the SSN is OK for purposes of brevity. */
+    prompt("Enter an account investor ssn: ", arec.invssn.arr);
+    arec.invssn.len = strlen(arec.invssn.arr);
+
+    EXEC SQL insert into credits values(
+        :crec.sendacctno,
+        name2_type(:crec.sender),
+        money_type(:crec.amt),
+        name2_type(:crec.sendbank),
+        date_type(:crec.day, :crec.month, :crec.year),
+        :arec.acctno
+        );
+    EXEC SQL insert into account values(
+        money_type(:arec.balance),
+        :arec.acctno,
+        num_type(:arec.acct_type),
+        :arec.invssn
+        );
+    EXEC SQL commit;
+}
+
+/* Delete a row from a table with no foreign keys.  Our only table with no
+ * foreign keys is the employee table for the recursive query. */
+void deleteInvestor() {
+    EXEC SQL begin declare section;
+    varchar issn[10];
+    investor_record irec;
+    investor_record_indicator irec_ind;
+    EXEC SQL end declare section;
+
+    prompt("Enter the ssn of the employee to be deleted: ", issn.arr);
+    issn.len = strlen(issn.arr);
+
+    EXEC SQL delete from employee e
+        where e.ssn = :issn;
+    if (sqlca.sqlcode > 0) {
+        printf("Employee (%s) does not exist\n", issn);
+    }
+    EXEC SQL commit;
+}
+
+/* Delete a row from a table with foreign keys. */
+void deleteMultiInvestor() {
+    EXEC SQL begin declare section;
+    varchar issn[10];
+    varchar acctno[7];
+    account_record arec;
+    investor_record irec;
+    investor_record_indicator irec_ind;
+    EXEC SQL end declare section;
+
+    prompt("Enter a ssn to delete an investor and all accounts: ", issn.arr);
+    issn.len = strlen(issn.arr);
+
+    EXEC SQL select a.acctno
+        into :acctno
+        from account a
+        where a.invssn = :issn;
+            
+    acctno.len = 6;
+
+    EXEC SQL delete from credits c
+        where c.addacctno = :acctno;
+
+    EXEC SQL delete from debits d
+        where d.billacctno = :acctno;
+                    
+    EXEC SQL delete from listed l
+        where l.acctno = :acctno;
+                     
+    EXEC SQL delete from owns o
+        where o.invssn = :issn;
+
+    EXEC SQL delete from investments i
+        where i.invssn = :issn;
+
+    EXEC SQL delete from account a
+        where a.invssn = :issn;
+
+    EXEC SQL delete from investor i
+        where i.ssn = :issn;
+            
+    EXEC SQL commit;
+}
+
+/* Update a value in a table. */
+void updateInvestor() {
+    EXEC SQL begin declare section;
+    varchar issn[10];
+    int day;
+    varchar temp[2];
+    investor_record irec;
+    investor_record_indicator irec_ind;
+    EXEC SQL end declare section;
+
+    prompt("Enter a ssn for investor to be updated: ", issn.arr);
+    issn.len = strlen(issn.arr);
+
+    prompt("Enter a new birth day (just the day) for the investor: ", temp.arr);
+    temp.len = strlen(temp.arr);
+    day = atoi(temp.arr);
+
+    EXEC SQL update investor i
+        set i.bdate.day = :day
+        where i.ssn = :issn;
+
+    if (sqlca.sqlcode > 0) {
+        printf("Investor (%s) does not exist\n", issn.arr);
+    }
+
+    EXEC SQL commit;
+}
+
+/* Executes the recursive query to retrieve a list of the SSNs of the
+ * subordinates of a given SSN. */
+void recursiveQuery() {
+    EXEC SQL begin declare section;
+    varchar issn[10];
+    recursive_record orec;
+    EXEC SQL end declare section;
+
+    EXEC SQL declare recursive_cursor cursor for
+        select ssn
+                   from employee
+                   start with ssn = :issn
+                   connect by prior ssn=mgrssn;
+
+    prompt("Manager SSN: ", issn.arr);
+    issn.len = strlen(issn.arr);
+
+    printf("sqlca.sqlcode: %d\n", sqlca.sqlcode);
+    EXEC SQL open recursive_cursor;
+    printf("sqlca.sqlcode: %d\n", sqlca.sqlcode);
+    EXEC SQL FETCH recursive_cursor INTO
+        :orec;
+
+    printf("sqlca.sqlcode: %d\n", sqlca.sqlcode);
+    while(sqlca.sqlcode != 1403) {
+        orec.ossn.arr[orec.ossn.len] = '\0';
+        printf("%s\n", orec.ossn.arr);
+
+        EXEC SQL fetch recursive_cursor into
+            :orec;
+    }
+    EXEC SQL close recursive_cursor;
+
+    EXEC SQL commit;
+}
+

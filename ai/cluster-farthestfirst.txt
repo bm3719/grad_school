@@ -1,0 +1,125 @@
+=== Run information ===
+
+Scheme:       weka.clusterers.FarthestFirst -N 5 -S 100
+Relation:     soybean-weka.filters.unsupervised.instance.RemoveMisclassified-Wweka.classifiers.rules.OneR -B 6-C-1-F0-T0.1-I0
+Instances:    279
+Attributes:   36
+              date
+              plant-stand
+              precip
+              temp
+              hail
+              crop-hist
+              area-damaged
+              severity
+              seed-tmt
+              germination
+              plant-growth
+              leaves
+              leafspots-halo
+              leafspots-marg
+              leafspot-size
+              leaf-shread
+              leaf-malf
+              leaf-mild
+              stem
+              lodging
+              stem-cankers
+              canker-lesion
+              fruiting-bodies
+              external-decay
+              mycelium
+              int-discolor
+              sclerotia
+              fruit-pods
+              fruit-spots
+              seed
+              mold-growth
+              seed-discolor
+              seed-size
+              shriveling
+              roots
+Ignored:
+              class
+Test mode:    Classes to clusters evaluation on training data
+
+=== Clustering model (full training set) ===
+
+
+ FarthestFirst
+==============
+
+Cluster centroids:
+
+Cluster 0
+	 october normal gt-norm norm yes same-lst-sev-yrs whole-field minor fungicide 80-89 norm abnorm no-yellow-halos w-s-marg gt-1/8 present absent absent norm yes absent dna absent absent absent none absent norm absent norm absent absent norm absent norm
+Cluster 1
+	 august lt-normal gt-norm gt-norm no same-lst-yr low-areas pot-severe none 90-100 norm abnorm absent dna dna absent absent absent abnorm no above-sec-nde dk-brown-blk present firm-and-dry absent none absent diseased brown-w/blk-specks abnorm present absent lt-norm absent norm
+Cluster 2
+	 june lt-normal norm norm yes diff-lst-year low-areas pot-severe none 80-89 abnorm abnorm absent dna dna absent absent absent abnorm yes above-soil dk-brown-blk absent absent absent none absent norm absent norm absent absent norm absent rotted
+Cluster 3
+	 july lt-normal gt-norm norm no diff-lst-year scattered pot-severe fungicide lt-80 abnorm abnorm no-yellow-halos w-s-marg gt-1/8 absent absent absent norm no above-soil brown absent firm-and-dry absent none absent diseased colored norm absent absent norm absent norm
+Cluster 4
+	 july normal gt-norm norm yes same-lst-yr scattered severe fungicide lt-80 abnorm abnorm absent dna dna absent absent absent abnorm yes above-sec-nde dna present firm-and-dry absent none absent norm dna norm absent absent norm absent norm
+
+
+=== Evaluation on training set ===
+
+
+ FarthestFirst
+==============
+
+Cluster centroids:
+
+Cluster 0
+	 october normal gt-norm norm yes same-lst-sev-yrs whole-field minor fungicide 80-89 norm abnorm no-yellow-halos w-s-marg gt-1/8 present absent absent norm yes absent dna absent absent absent none absent norm absent norm absent absent norm absent norm
+Cluster 1
+	 august lt-normal gt-norm gt-norm no same-lst-yr low-areas pot-severe none 90-100 norm abnorm absent dna dna absent absent absent abnorm no above-sec-nde dk-brown-blk present firm-and-dry absent none absent diseased brown-w/blk-specks abnorm present absent lt-norm absent norm
+Cluster 2
+	 june lt-normal norm norm yes diff-lst-year low-areas pot-severe none 80-89 abnorm abnorm absent dna dna absent absent absent abnorm yes above-soil dk-brown-blk absent absent absent none absent norm absent norm absent absent norm absent rotted
+Cluster 3
+	 july lt-normal gt-norm norm no diff-lst-year scattered pot-severe fungicide lt-80 abnorm abnorm no-yellow-halos w-s-marg gt-1/8 absent absent absent norm no above-soil brown absent firm-and-dry absent none absent diseased colored norm absent absent norm absent norm
+Cluster 4
+	 july normal gt-norm norm yes same-lst-yr scattered severe fungicide lt-80 abnorm abnorm absent dna dna absent absent absent abnorm yes above-sec-nde dna present firm-and-dry absent none absent norm dna norm absent absent norm absent norm
+
+Clustered Instances
+
+0      125 ( 45%)
+1       36 ( 13%)
+2       71 ( 25%)
+3       25 (  9%)
+4       22 (  8%)
+
+
+Class attribute: class
+Classes to Clusters:
+
+  0  1  2  3  4  <-- assigned to cluster
+  0  0  0  0 20 | diaporthe-stem-canker
+  0  0  0  0  0 | charcoal-rot
+  0  0  0  0  0 | rhizoctonia-root-rot
+  0  0 68  0  0 | phytophthora-rot
+  0  0  0  0  0 | brown-stem-rot
+  0  0  0  0  0 | powdery-mildew
+  0  0  0  0  0 | downy-mildew
+  0  0  0  0  0 | brown-spot
+  0  0  0  0  0 | bacterial-blight
+  0  0  0  0  0 | bacterial-pustule
+  0  0  0  0  0 | purple-seed-stain
+  0 33  3  0  2 | anthracnose
+  0  0  0  0  0 | phyllosticta-leaf-spot
+ 91  0  0  0  0 | alternarialeaf-spot
+ 34  3  0 25  0 | frog-eye-leaf-spot
+  0  0  0  0  0 | diaporthe-pod-&-stem-blight
+  0  0  0  0  0 | cyst-nematode
+  0  0  0  0  0 | 2-4-d-injury
+  0  0  0  0  0 | herbicide-injury
+
+Cluster 0 <-- alternarialeaf-spot
+Cluster 1 <-- anthracnose
+Cluster 2 <-- phytophthora-rot
+Cluster 3 <-- frog-eye-leaf-spot
+Cluster 4 <-- diaporthe-stem-canker
+
+Incorrectly clustered instances :	42.0	 15.0538 %
+

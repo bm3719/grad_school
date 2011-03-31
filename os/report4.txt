@@ -1,0 +1,47 @@
+Bruce C. Miller
+Project 4: Scheduling 
+
+Report:
+This project involves simulating scheduling algorithms in order to see how a
+processor manages its work load.  The simulation provides a situation similar
+to that of how processors schedule their processes.  The purpose is to see how
+different scheduling algorithms compare and how they work.  The simulation is a
+program written in Java that demonstrates how processes get handled across
+10,000 ticks of CPU time.
+
+The program measures a start and end time for each process so the response time
+can be derived.  process relevent data is stored the the process class.  The
+main function executes them in a round robin fashion, varying the time quantum.
+the results with different quantums are compared to see general trends of the
+effect on executing the virtual jobs.  The response time increased as the clock
+ran, due to increased workload.
+
+The average response time with a quantum of 3 is significantly less than the
+response time with a quantum of 10.  Time slicing every 3 "ticks" gave an
+average time of 2151.067 ticks, whereas with the quantum set to 10, the average
+time was 2302.4.
+
+Using the data compiled, we can say with a 95% confidence level that:
+
+With a time quantum of 3, the response time will be between:
+1540.4058 and 2761.7282 ticks
+and with a time quantum of 10, the response time will be between:
+1506.54 and 3098.26 ticks
+
+Raw data:
+(x)
+q = 3: 2035.162105263158 2087.42082890542 2105.900318133616 2210.48125921487
+       2040.190677966101 2106.87011615628 2203.222689075632 2124.33788037775
+(o)
+q= 10: 2276.018848167539 2460.77003121748 2302.813034188034 2314.45068928950
+       2250.033542976939 2242.23159018143 2272.149473684210 2491.32805907173
+
+Graph:
+n
+5|                
+4|                o
+3| x      x             
+2|               x        o       o
+1|  
+ +----------------------------------t
+ 2000    2100   2200    2300    2400

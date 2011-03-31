@@ -1,0 +1,1160 @@
+10:31:04 SQL> SET ECHO ON;
+10:31:04 SQL> SET TIME ON;
+10:31:04 SQL> SET LINESIZE 80;
+10:31:04 SQL> 
+10:31:04 SQL> -- drop the tables and types being used
+10:31:04 SQL> DROP TABLE investor     CASCADE CONSTRAINTS;
+
+Table dropped.
+
+10:31:05 SQL> DROP TABLE account      CASCADE CONSTRAINTS;
+
+Table dropped.
+
+10:31:06 SQL> DROP TABLE stocks       CASCADE CONSTRAINTS;
+
+Table dropped.
+
+10:31:07 SQL> DROP TABLE investments  CASCADE CONSTRAINTS;
+
+Table dropped.
+
+10:31:07 SQL> DROP TABLE owns	      CASCADE CONSTRAINTS;
+
+Table dropped.
+
+10:31:08 SQL> DROP TABLE listed       CASCADE CONSTRAINTS;
+
+Table dropped.
+
+10:31:08 SQL> DROP TABLE debits       CASCADE CONSTRAINTS;
+
+Table dropped.
+
+10:31:09 SQL> DROP TABLE credits      CASCADE CONSTRAINTS;
+
+Table dropped.
+
+10:31:10 SQL> 
+10:31:10 SQL> DROP TYPE name1_type;
+DROP TYPE name1_type
+*
+ERROR at line 1:
+ORA-02303: cannot drop or replace a type with type or table dependents 
+
+
+10:31:10 SQL> DROP TYPE addr_type;
+
+Type dropped.
+
+10:31:10 SQL> DROP TYPE phone_type;
+
+Type dropped.
+
+10:31:10 SQL> DROP TYPE name2_type;
+
+Type dropped.
+
+10:31:10 SQL> DROP TYPE money_type;
+
+Type dropped.
+
+10:31:10 SQL> DROP TYPE date_type;
+
+Type dropped.
+
+10:31:10 SQL> DROP TYPE num_type;
+
+Type dropped.
+
+10:31:10 SQL> 
+10:31:10 SQL> -- create the object types
+10:31:10 SQL> CREATE TYPE name1_type AS OBJECT(
+10:31:10   2  	      fname   VARCHAR2(10),
+10:31:10   3  	      minit   CHAR,
+10:31:10   4  	      lname   VARCHAR2(10));
+10:31:10   5  /
+CREATE TYPE name1_type AS OBJECT(
+            *
+ERROR at line 1:
+ORA-00955: name is already used by an existing object 
+
+
+10:31:10 SQL> CREATE TYPE addr_type AS OBJECT(
+10:31:10   2  	      st_num  VARCHAR2(6),
+10:31:10   3  	      street  VARCHAR2(12));
+10:31:10   4  /
+
+Type created.
+
+10:31:11 SQL> CREATE TYPE phone_type AS OBJECT(
+10:31:11   2  	      area_code       CHAR(3),
+10:31:11   3  	      phone_num       CHAR(7));
+10:31:11   4  /
+
+Type created.
+
+10:31:11 SQL> CREATE TYPE name2_type AS OBJECT(
+10:31:11   2  	      name    VARCHAR(16));
+10:31:11   3  /
+
+Type created.
+
+10:31:11 SQL> CREATE TYPE money_type AS OBJECT(
+10:31:11   2  	      value   DECIMAL(9,2));
+10:31:11   3  /
+
+Type created.
+
+10:31:11 SQL> CREATE TYPE date_type AS OBJECT(
+10:31:11   2  	      day     INT,
+10:31:11   3  	      month   INT,
+10:31:11   4  	      year    INT);
+10:31:11   5  /
+
+Type created.
+
+10:31:11 SQL> CREATE TYPE num_type AS OBJECT(
+10:31:11   2  	      num     CHAR(6));
+10:31:11   3  /
+
+Type created.
+
+10:31:11 SQL> 
+10:31:11 SQL> -- create tables
+10:31:11 SQL> CREATE TABLE investor (
+10:31:11   2  	      name    name1_type,
+10:31:11   3  	      ssn     CHAR(9)	      NOT NULL,
+10:31:11   4  	      address addr_type,
+10:31:11   5  	      phone   phone_type,
+10:31:11   6  	      bdate   date_type,
+10:31:11   7  	      PRIMARY KEY (ssn) );
+
+Table created.
+
+10:31:12 SQL> 
+10:31:12 SQL> CREATE TABLE account(
+10:31:12   2  	      balance	 money_type,
+10:31:12   3  	      acctno	 CHAR(6)      NOT NULL,
+10:31:12   4  	      acc_type	 num_type,
+10:31:12   5  	      invssn	 CHAR(9)      NOT NULL,
+10:31:12   6  	      PRIMARY KEY(acctno),
+10:31:12   7  	      FOREIGN KEY (invssn) REFERENCES INVESTOR(ssn));
+
+Table created.
+
+10:31:12 SQL> 
+10:31:12 SQL> CREATE TABLE investments(
+10:31:12   2  	      code    CHAR(6)	      NOT NULL,
+10:31:12   3  	      value   money_type,
+10:31:12   4  	      company name2_type,
+10:31:12   5  	      type    name2_type,
+10:31:12   6  	      invssn  CHAR(9)	      NOT NULL,
+10:31:12   7  	      acctno  CHAR(6)	      NOT NULL,
+10:31:12   8  	      PRIMARY KEY(code),
+10:31:12   9  	      FOREIGN KEY(invssn) REFERENCES INVESTOR(ssn),
+10:31:12  10  	      FOREIGN KEY(acctno) REFERENCES ACCOUNT(acctno));
+
+Table created.
+
+10:31:14 SQL> 
+10:31:14 SQL> CREATE TABLE stocks(
+10:31:14   2  	      symbol  VARCHAR(4)      NOT NULL,
+10:31:14   3  	      name    name2_type,
+10:31:14   4  	      value   money_type,
+10:31:14   5  	      PRIMARY KEY(symbol));
+
+Table created.
+
+10:31:14 SQL> 
+10:31:14 SQL> CREATE TABLE owns (
+10:31:14   2  	      invssn  CHAR(9) NOT NULL,
+10:31:14   3  	      symbol  VARCHAR(4)      NOT NULL,
+10:31:14   4  	      amount  num_type,
+10:31:14   5  	      PRIMARY KEY (invssn, symbol),
+10:31:14   6  	      FOREIGN KEY (symbol) REFERENCES STOCKS(symbol),
+10:31:14   7  	      FOREIGN KEY (invssn) REFERENCES INVESTOR(ssn));
+
+Table created.
+
+10:31:15 SQL> 
+10:31:15 SQL> CREATE TABLE listed (
+10:31:15   2  	      symbol  VARCHAR(4)      NOT NULL,
+10:31:15   3  	      acctno  CHAR(6)	      NOT NULL,
+10:31:15   4  	      amount  num_type,
+10:31:15   5  	      PRIMARY KEY (symbol, acctno),
+10:31:15   6  	      FOREIGN KEY (symbol) REFERENCES STOCKS(symbol),
+10:31:15   7  	      FOREIGN KEY (acctno) REFERENCES ACCOUNT(acctno));
+
+Table created.
+
+10:31:15 SQL> 
+10:31:15 SQL> CREATE TABLE debits(
+10:31:15   2  	      billacct	      CHAR(6)	      NOT NULL,
+10:31:15   3  	      on_date	      date_type,
+10:31:15   4  	      billbank	      name2_type,
+10:31:15   5  	      amt	      money_type,
+10:31:15   6  	      recipient       name2_type,
+10:31:15   7  	      billacctno      CHAR(6)	      NOT NULL,
+10:31:15   8  	      PRIMARY KEY (billacct),
+10:31:15   9  	      FOREIGN KEY (billacctno) REFERENCES ACCOUNT(acctno));
+
+Table created.
+
+10:31:16 SQL> 
+10:31:16 SQL> CREATE TABLE credits(
+10:31:16   2  	      sendacctno      CHAR(6)	      NOT NULL,
+10:31:16   3  	      sender	      name2_type,
+10:31:16   4  	      amt	      money_type,
+10:31:16   5  	      sendbank	      name2_type,
+10:31:16   6  	      on_date	      date_type,
+10:31:16   7  	      addacctno       CHAR(6)	      NOT NULL,
+10:31:16   8  	      PRIMARY KEY (sendacctno),
+10:31:16   9  	      FOREIGN KEY (addacctno) REFERENCES ACCOUNT(acctno));
+
+Table created.
+
+10:31:17 SQL> 
+10:31:17 SQL> -- describe tables defined
+10:31:17 SQL> DESCRIBE investor;
+ Name                                      Null?    Type
+ ----------------------------------------- -------- ----------------------------
+ NAME                                               NAME1_TYPE
+ SSN                                       NOT NULL CHAR(9)
+ ADDRESS                                            ADDR_TYPE
+ PHONE                                              PHONE_TYPE
+ BDATE                                              DATE_TYPE
+
+10:31:17 SQL> DESCRIBE account;
+ Name                                      Null?    Type
+ ----------------------------------------- -------- ----------------------------
+ BALANCE                                            MONEY_TYPE
+ ACCTNO                                    NOT NULL CHAR(6)
+ ACC_TYPE                                           NUM_TYPE
+ INVSSN                                    NOT NULL CHAR(9)
+
+10:31:17 SQL> DESCRIBE stocks;
+ Name                                      Null?    Type
+ ----------------------------------------- -------- ----------------------------
+ SYMBOL                                    NOT NULL VARCHAR2(4)
+ NAME                                               NAME2_TYPE
+ VALUE                                              MONEY_TYPE
+
+10:31:17 SQL> DESCRIBE owns;
+ Name                                      Null?    Type
+ ----------------------------------------- -------- ----------------------------
+ INVSSN                                    NOT NULL CHAR(9)
+ SYMBOL                                    NOT NULL VARCHAR2(4)
+ AMOUNT                                             NUM_TYPE
+
+10:31:17 SQL> DESCRIBE listed;
+ Name                                      Null?    Type
+ ----------------------------------------- -------- ----------------------------
+ SYMBOL                                    NOT NULL VARCHAR2(4)
+ ACCTNO                                    NOT NULL CHAR(6)
+ AMOUNT                                             NUM_TYPE
+
+10:31:17 SQL> DESCRIBE debits;
+ Name                                      Null?    Type
+ ----------------------------------------- -------- ----------------------------
+ BILLACCT                                  NOT NULL CHAR(6)
+ ON_DATE                                            DATE_TYPE
+ BILLBANK                                           NAME2_TYPE
+ AMT                                                MONEY_TYPE
+ RECIPIENT                                          NAME2_TYPE
+ BILLACCTNO                                NOT NULL CHAR(6)
+
+10:31:17 SQL> DESCRIBE credits;
+ Name                                      Null?    Type
+ ----------------------------------------- -------- ----------------------------
+ SENDACCTNO                                NOT NULL CHAR(6)
+ SENDER                                             NAME2_TYPE
+ AMT                                                MONEY_TYPE
+ SENDBANK                                           NAME2_TYPE
+ ON_DATE                                            DATE_TYPE
+ ADDACCTNO                                 NOT NULL CHAR(6)
+
+10:31:17 SQL> 
+10:31:17 SQL> -- sample data
+10:31:17 SQL> 
+10:31:17 SQL> INSERT INTO investor VALUES (name1_type('Bruce', 'C', 'Miller'), '111223333',
+10:31:17   2  	      addr_type('515', 'East Orange'), phone_type('717', '5325605'),
+10:31:17   3  	      date_type(15, 7, 1978));
+
+1 row created.
+
+10:31:17 SQL> INSERT INTO investor VALUES (name1_type('Farzaneh', 'X', 'Asgari'), '222334444',
+10:31:17   2  	      addr_type('32', 'South Earl'), phone_type('717', '5324444'),
+10:31:17   3  	      date_type(2, 7, 1979));
+
+1 row created.
+
+10:31:17 SQL> INSERT INTO investor VALUES (name1_type('Michael', 'L', 'Schultz'), '333445555',
+10:31:17   2  	      addr_type('11', 'North Main'), phone_type('717', '5323232'),
+10:31:17   3  	      date_type(1, 4, 1989));
+
+1 row created.
+
+10:31:17 SQL> INSERT INTO investor VALUES (name1_type('Steve', 'Q', 'Smith'), '444556666',
+10:31:17   2  	      addr_type('44', 'South Queen'), phone_type('717', '5324523'),
+10:31:17   3  	      date_type(11, 2, 1990));
+
+1 row created.
+
+10:31:17 SQL> INSERT INTO investor VALUES (name1_type('Dingo', 'Z', 'Farm'), '555667777',
+10:31:17   2  	      addr_type('498', 'North Prince'), phone_type('717', '5327777'),
+10:31:17   3  	      date_type(12, 3, 1943));
+
+1 row created.
+
+10:31:17 SQL> 
+10:31:17 SQL> INSERT INTO account VALUES(money_type(320000.00), '000001',
+10:31:17   2  	      num_type('100000'), '111223333');
+
+1 row created.
+
+10:31:17 SQL> INSERT INTO account VALUES(money_type(520000.01), '000002',
+10:31:17   2  	      num_type('100000'), '222334444');
+
+1 row created.
+
+10:31:17 SQL> INSERT INTO account VALUES(money_type(100000.00), '000003',
+10:31:17   2  	      num_type('100000'), '333445555');
+
+1 row created.
+
+10:31:17 SQL> INSERT INTO account VALUES(money_type(525555.50), '000004',
+10:31:17   2  	      num_type('100000'), '444556666');
+
+1 row created.
+
+10:31:17 SQL> INSERT INTO account VALUES(money_type(1200.00), '000005',
+10:31:17   2  	      num_type('100000'), '555667777');
+
+1 row created.
+
+10:31:17 SQL> 
+10:31:17 SQL> INSERT INTO stocks VALUES('IBM',name2_type('IBM'),money_type(32.25));
+
+1 row created.
+
+10:31:17 SQL> INSERT INTO stocks VALUES('CSC',name2_type('Cisco'),money_type(30.25));
+
+1 row created.
+
+10:31:17 SQL> INSERT INTO stocks VALUES('NOR',name2_type('Nortel'),money_type(22.25));
+
+1 row created.
+
+10:31:17 SQL> INSERT INTO stocks VALUES('HIN',name2_type('Holiday'),money_type(12.25));
+
+1 row created.
+
+10:31:17 SQL> INSERT INTO stocks VALUES('WAM',name2_type('WalMart'),money_type(52.25));
+
+1 row created.
+
+10:31:17 SQL> 
+10:31:17 SQL> INSERT INTO investments VALUES('100001', money_type(25000.00),
+10:31:17   2  	      name2_type('Fidelity'), name2_type('Mutual_fund'),
+10:31:17   3  	      '111223333', '000001');
+
+1 row created.
+
+10:31:17 SQL> INSERT INTO investments VALUES('100002', money_type(35000.00),
+10:31:17   2  	      name2_type('Prudential'), name2_type('Mutual_fund'),
+10:31:17   3  	      '222334444', '000002');
+
+1 row created.
+
+10:31:17 SQL> INSERT INTO investments VALUES('100003', money_type(55000.00),
+10:31:17   2  	      name2_type('Oppenhiemer'), name2_type('Roth_IRA'),
+10:31:17   3  	      '333445555','000003');
+
+1 row created.
+
+10:31:17 SQL> INSERT INTO investments VALUES('100004', money_type(21000.00),
+10:31:17   2  	      name2_type('Opeen'), name2_type('IRA'),
+10:31:17   3  	      '111223333','000001');
+
+1 row created.
+
+10:31:17 SQL> INSERT INTO investments VALUES('100005', money_type(15000.00),
+10:31:17   2  	      name2_type('Fidelity'), name2_type('Mutual_fund'),
+10:31:17   3  	      '222334444','000002');
+
+1 row created.
+
+10:31:17 SQL> 
+10:31:17 SQL> INSERT INTO debits VALUES('200001', date_type(12,10,2002),
+10:31:17   2  	      name2_type('MTT'), money_type(12000.00),
+10:31:17   3  	      name2_type('coffins.com'), '000001');
+
+1 row created.
+
+10:31:17 SQL> INSERT INTO debits VALUES('200002', date_type(12,07,2003),
+10:31:17   2  	      name2_type('FM'), money_type(22000.00),
+10:31:17   3  	      name2_type('crayons.com'), '000005');
+
+1 row created.
+
+10:31:17 SQL> INSERT INTO debits VALUES('200003', date_type(10,10,2002),
+10:31:17   2  	      name2_type('Federal Union'), money_type(10000.00),
+10:31:17   3  	      name2_type('dde.com'), '000004');
+
+1 row created.
+
+10:31:17 SQL> INSERT INTO debits VALUES('200004', date_type(12,10,2002),
+10:31:17   2  	      name2_type('Allfirst'), money_type(13000.00),
+10:31:17   3  	      name2_type('coffins.com'), '000003');
+
+1 row created.
+
+10:31:17 SQL> INSERT INTO debits VALUES('200005', date_type(07,11,2000),
+10:31:17   2  	      name2_type('MTT'), money_type(15000.00),
+10:31:17   3  	      name2_type('ffer.com'), '000002');
+
+1 row created.
+
+10:31:17 SQL> 
+10:31:17 SQL> INSERT INTO credits VALUES('400001', name2_type('Sperm Bank'),
+10:31:17   2  	      money_type(34.30), name2_type('Members first'),
+10:31:17   3  	      date_type(12, 9, 1999), '000001');
+
+1 row created.
+
+10:31:17 SQL> INSERT INTO credits VALUES('400002', name2_type('Fhqwgads'),
+10:31:17   2  	      money_type(4534.20), name2_type('Federal Credit'),
+10:31:17   3  	      date_type(1, 29, 1997), '000002');
+
+1 row created.
+
+10:31:17 SQL> INSERT INTO credits VALUES('400003', name2_type('Lawn Doctors'),
+10:31:17   2  	      money_type(46.00), name2_type('Allfirst'),
+10:31:17   3  	      date_type(4, 19, 2000), '000003');
+
+1 row created.
+
+10:31:17 SQL> INSERT INTO credits VALUES('400004', name2_type('Thift Store'),
+10:31:17   2  	      money_type(4.25), name2_type('FM'),
+10:31:17   3  	      date_type(3, 7, 1995), '000004');
+
+1 row created.
+
+10:31:17 SQL> INSERT INTO credits VALUES('400005', name2_type('Jump School'),
+10:31:17   2  	      money_type(7.01), name2_type('Members first'),
+10:31:17   3  	      date_type(1, 12, 2003), '000005');
+
+1 row created.
+
+10:31:17 SQL> 
+10:31:17 SQL> INSERT INTO owns VALUES('111223333', 'IBM', num_type('000002'));
+
+1 row created.
+
+10:31:17 SQL> INSERT INTO owns VALUES('222334444', 'CSC', num_type('000001'));
+
+1 row created.
+
+10:31:17 SQL> INSERT INTO owns VALUES('333445555', 'NOR', num_type('000002'));
+
+1 row created.
+
+10:31:17 SQL> INSERT INTO owns VALUES('444556666', 'HIN', num_type('000001'));
+
+1 row created.
+
+10:31:17 SQL> INSERT INTO owns VALUES('111223333', 'WAM', num_type('000001'));
+
+1 row created.
+
+10:31:17 SQL> 
+10:31:17 SQL> INSERT INTO listed VALUES('IBM', '000001', num_type('000002'));
+
+1 row created.
+
+10:31:17 SQL> INSERT INTO listed VALUES('CSC', '000002', num_type('000001'));
+
+1 row created.
+
+10:31:17 SQL> INSERT INTO listed VALUES('NOR', '000003', num_type('000002'));
+
+1 row created.
+
+10:31:17 SQL> INSERT INTO listed VALUES('HIN', '000004', num_type('000001'));
+
+1 row created.
+
+10:31:17 SQL> INSERT INTO listed VALUES('WAM', '000001', num_type('000001'));
+
+1 row created.
+
+10:31:17 SQL> 
+10:31:17 SQL> 
+10:31:17 SQL> -- sample queries
+10:31:17 SQL> 
+10:31:17 SQL> -- 1.   List the name and account number of the investor
+10:31:17 SQL> --      that has balance more than  $100,000.
+10:31:17 SQL> 
+10:31:17 SQL> SELECT  name, acctno
+10:31:17   2  FROM    investor, account a
+10:31:17   3  WHERE   ssn = invssn AND a.balance.value> 100000.00;
+
+NAME(FNAME, MINIT, LNAME)                                                       
+--------------------------------------------------------------------------------
+ACCTNO                                                                          
+------                                                                          
+NAME1_TYPE('Bruce', 'C', 'Miller')                                              
+000001                                                                          
+                                                                                
+NAME1_TYPE('Farzaneh', 'X', 'Asgari')                                           
+000002                                                                          
+                                                                                
+NAME1_TYPE('Steve', 'Q', 'Smith')                                               
+000004                                                                          
+                                                                                
+
+10:31:17 SQL> 
+10:31:17 SQL> 
+10:31:17 SQL> -- 2.   retrieve the name of all investor and account numbers that
+10:31:17 SQL> --      are invested in the mutual fund.
+10:31:17 SQL> 
+10:31:17 SQL> SELECT   name, acctno
+10:31:17   2  FROM     investor, investments v
+10:31:17   3  WHERE    ssn = invssn AND v.type.name ='Mutual_fund';
+
+NAME(FNAME, MINIT, LNAME)                                                       
+--------------------------------------------------------------------------------
+ACCTNO                                                                          
+------                                                                          
+NAME1_TYPE('Bruce', 'C', 'Miller')                                              
+000001                                                                          
+                                                                                
+NAME1_TYPE('Farzaneh', 'X', 'Asgari')                                           
+000002                                                                          
+                                                                                
+NAME1_TYPE('Farzaneh', 'X', 'Asgari')                                           
+000002                                                                          
+                                                                                
+
+10:31:17 SQL> 
+10:31:17 SQL> -- 3.   find the sum of the loans by MTT bank.
+10:31:17 SQL> 
+10:31:17 SQL> SELECT   sum(d.amt.value)
+10:31:17   2  FROM     debits d
+10:31:17   3  WHERE   d.billbank.name='MTT';
+
+SUM(D.AMT.VALUE)                                                                
+----------------                                                                
+           27000                                                                
+
+10:31:17 SQL> 
+10:31:17 SQL> -- 4.   list the names and account numbers of investors who have
+10:31:17 SQL> --      have no stocks
+10:31:17 SQL> 
+10:31:17 SQL> SELECT  name, acctno
+10:31:17   2  FROM    investor, account
+10:31:17   3  WHERE   ssn=invssn AND NOT EXISTS
+10:31:17   4  (SELECT	  *
+10:31:17   5  	FROM	  owns
+10:31:17   6  	 WHERE	 ssn = invssn) ;
+
+NAME(FNAME, MINIT, LNAME)                                                       
+--------------------------------------------------------------------------------
+ACCTNO                                                                          
+------                                                                          
+NAME1_TYPE('Dingo', 'Z', 'Farm')                                                
+000005                                                                          
+                                                                                
+
+10:31:17 SQL> 
+10:31:17 SQL> -- 5.   list the account type that recieved
+10:31:17 SQL> --      credit from Members first.
+10:31:17 SQL> 
+10:31:17 SQL> SELECT  acc_type
+10:31:17   2  FROM    account, credits c
+10:31:17   3  WHERE   acctno = addacctno
+10:31:17   4  AND c.sendbank.name ='Members first';
+
+ACC_TYPE(NUM)                                                                   
+--------------------------------------------------------------------------------
+NUM_TYPE('100000')                                                              
+NUM_TYPE('100000')                                                              
+
+10:31:17 SQL> 
+10:31:17 SQL> -- 6. display all names of investors born after 1978.
+10:31:17 SQL> 
+10:31:17 SQL> SELECT name
+10:31:17   2  FROM investor i
+10:31:17   3  WHERE i.bdate.year > 1978;
+
+NAME(FNAME, MINIT, LNAME)                                                       
+--------------------------------------------------------------------------------
+NAME1_TYPE('Farzaneh', 'X', 'Asgari')                                           
+NAME1_TYPE('Michael', 'L', 'Schultz')                                           
+NAME1_TYPE('Steve', 'Q', 'Smith')                                               
+
+10:31:17 SQL> 
+10:31:17 SQL> -- 7. display the all of the total number of stocks
+10:31:17 SQL> --    owned
+10:31:17 SQL> 
+10:31:17 SQL> SELECT sum(o.amount.num)
+10:31:17   2  FROM investor i, owns o
+10:31:17   3  WHERE o.invssn = i.ssn;
+
+SUM(O.AMOUNT.NUM)                                                               
+-----------------                                                               
+                7                                                               
+
+10:31:17 SQL> 
+10:31:17 SQL> -- 8. display a list of banks sending credits and the
+10:31:17 SQL> --    account type money is sent to
+10:31:17 SQL> 
+10:31:17 SQL> SELECT sendbank, acc_type
+10:31:17   2  FROM credits c, account a
+10:31:17   3  WHERE a.acctno=c.addacctno;
+
+SENDBANK(NAME)                                                                  
+--------------------------------------------------------------------------------
+ACC_TYPE(NUM)                                                                   
+--------------------------------------------------------------------------------
+NAME2_TYPE('Members first')                                                     
+NUM_TYPE('100000')                                                              
+                                                                                
+NAME2_TYPE('Federal Credit')                                                    
+NUM_TYPE('100000')                                                              
+                                                                                
+NAME2_TYPE('Allfirst')                                                          
+NUM_TYPE('100000')                                                              
+                                                                                
+
+SENDBANK(NAME)                                                                  
+--------------------------------------------------------------------------------
+ACC_TYPE(NUM)                                                                   
+--------------------------------------------------------------------------------
+NAME2_TYPE('FM')                                                                
+NUM_TYPE('100000')                                                              
+                                                                                
+NAME2_TYPE('Members first')                                                     
+NUM_TYPE('100000')                                                              
+                                                                                
+
+10:31:17 SQL> 
+10:31:17 SQL> -- 9. display a list of investor names that do not
+10:31:17 SQL> --    have debits on their accounts
+10:31:17 SQL> 
+10:31:17 SQL> SELECT i.name
+10:31:17   2  FROM investor i, account a
+10:31:17   3  WHERE i.ssn=a.invssn
+10:31:17   4  	    AND NOT EXISTS
+10:31:17   5  	      ( SELECT *
+10:31:17   6  		FROM account a, debits d
+10:31:17   7  		WHERE a.acctno = d.billacct );
+
+NAME(FNAME, MINIT, LNAME)                                                       
+--------------------------------------------------------------------------------
+NAME1_TYPE('Bruce', 'C', 'Miller')                                              
+NAME1_TYPE('Farzaneh', 'X', 'Asgari')                                           
+NAME1_TYPE('Michael', 'L', 'Schultz')                                           
+NAME1_TYPE('Steve', 'Q', 'Smith')                                               
+NAME1_TYPE('Dingo', 'Z', 'Farm')                                                
+
+10:31:17 SQL> 
+10:31:17 SQL> -- 10. display investment codes along with the
+10:31:17 SQL> --     cooresponding account numbers
+10:31:17 SQL> 
+10:31:17 SQL> SELECT code, i.acctno
+10:31:17   2  FROM investments i, account a
+10:31:17   3  WHERE i.acctno = a.acctno;
+
+CODE   ACCTNO                                                                   
+------ ------                                                                   
+100001 000001                                                                   
+100002 000002                                                                   
+100003 000003                                                                   
+100004 000001                                                                   
+100005 000002                                                                   
+
+10:31:17 SQL> 
+10:31:17 SQL> -- 11. Make a list of all socks for investor, whose
+10:31:17 SQL> --     last name is smith., or first name is Dingo
+10:31:17 SQL> 
+10:31:17 SQL> (SELECT symbol
+10:31:17   2  FROM  investor i, owns
+10:31:17   3  WHERE ssn=invssn AND i.name.lname ='Smith')
+10:31:17   4  UNION
+10:31:17   5  (SELECT symbol
+10:31:17   6  FROM  investor i, owns
+10:31:17   7  WHERE ssn=invssn AND i.name.lname ='Dingo');
+
+SYMB                                                                            
+----                                                                            
+HIN                                                                             
+
+10:31:17 SQL> 
+10:31:17 SQL> -- 12. Select those investors whose stock values are
+10:31:17 SQL> --     below $10, etc.
+10:31:17 SQL> 
+10:31:17 SQL> SELECT DISTINCT i.ssn
+10:31:17   2  FROM investor i, owns o, stocks s
+10:31:17   3  WHERE i.ssn = o.invssn AND o.symbol = s.symbol AND s.value.value < 20;
+
+SSN                                                                             
+---------                                                                       
+444556666                                                                       
+
+10:31:17 SQL> 
+10:31:17 SQL> -- 13. Select the accounts that own Nortel stock.
+10:31:17 SQL> 
+10:31:17 SQL> SELECT i.name, i.ssn, i.address, o.symbol, o.amount
+10:31:17   2  FROM owns o, investor i
+10:31:17   3  WHERE o.symbol = 'NOR';
+
+NAME(FNAME, MINIT, LNAME)                                                       
+--------------------------------------------------------------------------------
+SSN                                                                             
+---------                                                                       
+ADDRESS(ST_NUM, STREET)                                                         
+--------------------------------------------------------------------------------
+SYMB                                                                            
+----                                                                            
+AMOUNT(NUM)                                                                     
+--------------------------------------------------------------------------------
+NAME1_TYPE('Bruce', 'C', 'Miller')                                              
+111223333                                                                       
+ADDR_TYPE('515', 'East Orange')                                                 
+
+NAME(FNAME, MINIT, LNAME)                                                       
+--------------------------------------------------------------------------------
+SSN                                                                             
+---------                                                                       
+ADDRESS(ST_NUM, STREET)                                                         
+--------------------------------------------------------------------------------
+SYMB                                                                            
+----                                                                            
+AMOUNT(NUM)                                                                     
+--------------------------------------------------------------------------------
+NOR                                                                             
+NUM_TYPE('000002')                                                              
+                                                                                
+
+NAME(FNAME, MINIT, LNAME)                                                       
+--------------------------------------------------------------------------------
+SSN                                                                             
+---------                                                                       
+ADDRESS(ST_NUM, STREET)                                                         
+--------------------------------------------------------------------------------
+SYMB                                                                            
+----                                                                            
+AMOUNT(NUM)                                                                     
+--------------------------------------------------------------------------------
+NAME1_TYPE('Farzaneh', 'X', 'Asgari')                                           
+222334444                                                                       
+ADDR_TYPE('32', 'South Earl')                                                   
+
+NAME(FNAME, MINIT, LNAME)                                                       
+--------------------------------------------------------------------------------
+SSN                                                                             
+---------                                                                       
+ADDRESS(ST_NUM, STREET)                                                         
+--------------------------------------------------------------------------------
+SYMB                                                                            
+----                                                                            
+AMOUNT(NUM)                                                                     
+--------------------------------------------------------------------------------
+NOR                                                                             
+NUM_TYPE('000002')                                                              
+                                                                                
+
+NAME(FNAME, MINIT, LNAME)                                                       
+--------------------------------------------------------------------------------
+SSN                                                                             
+---------                                                                       
+ADDRESS(ST_NUM, STREET)                                                         
+--------------------------------------------------------------------------------
+SYMB                                                                            
+----                                                                            
+AMOUNT(NUM)                                                                     
+--------------------------------------------------------------------------------
+NAME1_TYPE('Michael', 'L', 'Schultz')                                           
+333445555                                                                       
+ADDR_TYPE('11', 'North Main')                                                   
+
+NAME(FNAME, MINIT, LNAME)                                                       
+--------------------------------------------------------------------------------
+SSN                                                                             
+---------                                                                       
+ADDRESS(ST_NUM, STREET)                                                         
+--------------------------------------------------------------------------------
+SYMB                                                                            
+----                                                                            
+AMOUNT(NUM)                                                                     
+--------------------------------------------------------------------------------
+NOR                                                                             
+NUM_TYPE('000002')                                                              
+                                                                                
+
+NAME(FNAME, MINIT, LNAME)                                                       
+--------------------------------------------------------------------------------
+SSN                                                                             
+---------                                                                       
+ADDRESS(ST_NUM, STREET)                                                         
+--------------------------------------------------------------------------------
+SYMB                                                                            
+----                                                                            
+AMOUNT(NUM)                                                                     
+--------------------------------------------------------------------------------
+NAME1_TYPE('Steve', 'Q', 'Smith')                                               
+444556666                                                                       
+ADDR_TYPE('44', 'South Queen')                                                  
+
+NAME(FNAME, MINIT, LNAME)                                                       
+--------------------------------------------------------------------------------
+SSN                                                                             
+---------                                                                       
+ADDRESS(ST_NUM, STREET)                                                         
+--------------------------------------------------------------------------------
+SYMB                                                                            
+----                                                                            
+AMOUNT(NUM)                                                                     
+--------------------------------------------------------------------------------
+NOR                                                                             
+NUM_TYPE('000002')                                                              
+                                                                                
+
+NAME(FNAME, MINIT, LNAME)                                                       
+--------------------------------------------------------------------------------
+SSN                                                                             
+---------                                                                       
+ADDRESS(ST_NUM, STREET)                                                         
+--------------------------------------------------------------------------------
+SYMB                                                                            
+----                                                                            
+AMOUNT(NUM)                                                                     
+--------------------------------------------------------------------------------
+NAME1_TYPE('Dingo', 'Z', 'Farm')                                                
+555667777                                                                       
+ADDR_TYPE('498', 'North Prince')                                                
+
+NAME(FNAME, MINIT, LNAME)                                                       
+--------------------------------------------------------------------------------
+SSN                                                                             
+---------                                                                       
+ADDRESS(ST_NUM, STREET)                                                         
+--------------------------------------------------------------------------------
+SYMB                                                                            
+----                                                                            
+AMOUNT(NUM)                                                                     
+--------------------------------------------------------------------------------
+NOR                                                                             
+NUM_TYPE('000002')                                                              
+                                                                                
+
+10:31:18 SQL> 
+10:31:18 SQL> -- 14. Select only those investors which live in the 717 area code.
+10:31:18 SQL> 
+10:31:18 SQL> SELECT *
+10:31:18   2  FROM investor i
+10:31:18   3  WHERE i.phone.area_code = 717;
+
+NAME(FNAME, MINIT, LNAME)                                                       
+--------------------------------------------------------------------------------
+SSN                                                                             
+---------                                                                       
+ADDRESS(ST_NUM, STREET)                                                         
+--------------------------------------------------------------------------------
+PHONE(AREA_CODE, PHONE_NUM)                                                     
+--------------------------------------------------------------------------------
+BDATE(DAY, MONTH, YEAR)                                                         
+--------------------------------------------------------------------------------
+NAME1_TYPE('Bruce', 'C', 'Miller')                                              
+111223333                                                                       
+ADDR_TYPE('515', 'East Orange')                                                 
+
+NAME(FNAME, MINIT, LNAME)                                                       
+--------------------------------------------------------------------------------
+SSN                                                                             
+---------                                                                       
+ADDRESS(ST_NUM, STREET)                                                         
+--------------------------------------------------------------------------------
+PHONE(AREA_CODE, PHONE_NUM)                                                     
+--------------------------------------------------------------------------------
+BDATE(DAY, MONTH, YEAR)                                                         
+--------------------------------------------------------------------------------
+PHONE_TYPE('717', '5325605')                                                    
+DATE_TYPE(15, 7, 1978)                                                          
+                                                                                
+
+NAME(FNAME, MINIT, LNAME)                                                       
+--------------------------------------------------------------------------------
+SSN                                                                             
+---------                                                                       
+ADDRESS(ST_NUM, STREET)                                                         
+--------------------------------------------------------------------------------
+PHONE(AREA_CODE, PHONE_NUM)                                                     
+--------------------------------------------------------------------------------
+BDATE(DAY, MONTH, YEAR)                                                         
+--------------------------------------------------------------------------------
+NAME1_TYPE('Farzaneh', 'X', 'Asgari')                                           
+222334444                                                                       
+ADDR_TYPE('32', 'South Earl')                                                   
+
+NAME(FNAME, MINIT, LNAME)                                                       
+--------------------------------------------------------------------------------
+SSN                                                                             
+---------                                                                       
+ADDRESS(ST_NUM, STREET)                                                         
+--------------------------------------------------------------------------------
+PHONE(AREA_CODE, PHONE_NUM)                                                     
+--------------------------------------------------------------------------------
+BDATE(DAY, MONTH, YEAR)                                                         
+--------------------------------------------------------------------------------
+PHONE_TYPE('717', '5324444')                                                    
+DATE_TYPE(2, 7, 1979)                                                           
+                                                                                
+
+NAME(FNAME, MINIT, LNAME)                                                       
+--------------------------------------------------------------------------------
+SSN                                                                             
+---------                                                                       
+ADDRESS(ST_NUM, STREET)                                                         
+--------------------------------------------------------------------------------
+PHONE(AREA_CODE, PHONE_NUM)                                                     
+--------------------------------------------------------------------------------
+BDATE(DAY, MONTH, YEAR)                                                         
+--------------------------------------------------------------------------------
+NAME1_TYPE('Michael', 'L', 'Schultz')                                           
+333445555                                                                       
+ADDR_TYPE('11', 'North Main')                                                   
+
+NAME(FNAME, MINIT, LNAME)                                                       
+--------------------------------------------------------------------------------
+SSN                                                                             
+---------                                                                       
+ADDRESS(ST_NUM, STREET)                                                         
+--------------------------------------------------------------------------------
+PHONE(AREA_CODE, PHONE_NUM)                                                     
+--------------------------------------------------------------------------------
+BDATE(DAY, MONTH, YEAR)                                                         
+--------------------------------------------------------------------------------
+PHONE_TYPE('717', '5323232')                                                    
+DATE_TYPE(1, 4, 1989)                                                           
+                                                                                
+
+NAME(FNAME, MINIT, LNAME)                                                       
+--------------------------------------------------------------------------------
+SSN                                                                             
+---------                                                                       
+ADDRESS(ST_NUM, STREET)                                                         
+--------------------------------------------------------------------------------
+PHONE(AREA_CODE, PHONE_NUM)                                                     
+--------------------------------------------------------------------------------
+BDATE(DAY, MONTH, YEAR)                                                         
+--------------------------------------------------------------------------------
+NAME1_TYPE('Steve', 'Q', 'Smith')                                               
+444556666                                                                       
+ADDR_TYPE('44', 'South Queen')                                                  
+
+NAME(FNAME, MINIT, LNAME)                                                       
+--------------------------------------------------------------------------------
+SSN                                                                             
+---------                                                                       
+ADDRESS(ST_NUM, STREET)                                                         
+--------------------------------------------------------------------------------
+PHONE(AREA_CODE, PHONE_NUM)                                                     
+--------------------------------------------------------------------------------
+BDATE(DAY, MONTH, YEAR)                                                         
+--------------------------------------------------------------------------------
+PHONE_TYPE('717', '5324523')                                                    
+DATE_TYPE(11, 2, 1990)                                                          
+                                                                                
+
+NAME(FNAME, MINIT, LNAME)                                                       
+--------------------------------------------------------------------------------
+SSN                                                                             
+---------                                                                       
+ADDRESS(ST_NUM, STREET)                                                         
+--------------------------------------------------------------------------------
+PHONE(AREA_CODE, PHONE_NUM)                                                     
+--------------------------------------------------------------------------------
+BDATE(DAY, MONTH, YEAR)                                                         
+--------------------------------------------------------------------------------
+NAME1_TYPE('Dingo', 'Z', 'Farm')                                                
+555667777                                                                       
+ADDR_TYPE('498', 'North Prince')                                                
+
+NAME(FNAME, MINIT, LNAME)                                                       
+--------------------------------------------------------------------------------
+SSN                                                                             
+---------                                                                       
+ADDRESS(ST_NUM, STREET)                                                         
+--------------------------------------------------------------------------------
+PHONE(AREA_CODE, PHONE_NUM)                                                     
+--------------------------------------------------------------------------------
+BDATE(DAY, MONTH, YEAR)                                                         
+--------------------------------------------------------------------------------
+PHONE_TYPE('717', '5327777')                                                    
+DATE_TYPE(12, 3, 1943)                                                          
+                                                                                
+
+10:31:18 SQL> 
+10:31:18 SQL> -- 15. Select all the stocks which an investor has.
+10:31:18 SQL> 
+10:31:18 SQL> SELECT i.ssn, o.symbol, s.name, s.value
+10:31:18   2  FROM stocks s, owns o, investor i
+10:31:18   3  WHERE i.ssn = o.invssn AND o.symbol = s.symbol;
+
+SSN       SYMB                                                                  
+--------- ----                                                                  
+NAME(NAME)                                                                      
+--------------------------------------------------------------------------------
+VALUE(VALUE)                                                                    
+--------------------------------------------------------------------------------
+111223333 IBM                                                                   
+NAME2_TYPE('IBM')                                                               
+MONEY_TYPE(32.25)                                                               
+                                                                                
+111223333 WAM                                                                   
+NAME2_TYPE('WalMart')                                                           
+MONEY_TYPE(52.25)                                                               
+
+SSN       SYMB                                                                  
+--------- ----                                                                  
+NAME(NAME)                                                                      
+--------------------------------------------------------------------------------
+VALUE(VALUE)                                                                    
+--------------------------------------------------------------------------------
+                                                                                
+222334444 CSC                                                                   
+NAME2_TYPE('Cisco')                                                             
+MONEY_TYPE(30.25)                                                               
+                                                                                
+333445555 NOR                                                                   
+NAME2_TYPE('Nortel')                                                            
+
+SSN       SYMB                                                                  
+--------- ----                                                                  
+NAME(NAME)                                                                      
+--------------------------------------------------------------------------------
+VALUE(VALUE)                                                                    
+--------------------------------------------------------------------------------
+MONEY_TYPE(22.25)                                                               
+                                                                                
+444556666 HIN                                                                   
+NAME2_TYPE('Holiday')                                                           
+MONEY_TYPE(12.25)                                                               
+                                                                                
+
+10:31:18 SQL> 
+10:31:18 SQL> -- example employee table of famous british authors for the recursive query
+10:31:18 SQL> 
+10:31:18 SQL> DROP TABLE employee;
+
+Table dropped.
+
+10:31:18 SQL> 
+10:31:18 SQL> CREATE TABLE employee (
+10:31:18   2  	      name    name1_type,
+10:31:18   3  	      ssn     CHAR(9)	      NOT NULL,
+10:31:18   4  	      mgrssn  CHAR(9),
+10:31:18   5  	      PRIMARY KEY (ssn) );
+
+Table created.
+
+10:31:18 SQL> 
+10:31:18 SQL> DESCRIBE employee;
+ Name                                      Null?    Type
+ ----------------------------------------- -------- ----------------------------
+ NAME                                               NAME1_TYPE
+ SSN                                       NOT NULL CHAR(9)
+ MGRSSN                                             CHAR(9)
+
+10:31:18 SQL> 
+10:31:18 SQL> INSERT INTO employee VALUES (name1_type('Joseph', 'H', 'Conrad'), '123456789', '198419841');
+
+1 row created.
+
+10:31:18 SQL> INSERT INTO employee VALUES (name1_type('G', 'K', 'Chesterson'), '987654321', '123456789');
+
+1 row created.
+
+10:31:18 SQL> INSERT INTO employee VALUES (name1_type('Bernard', 'P', 'Shaw'), '198419841', NULL);
+
+1 row created.
+
+10:31:18 SQL> INSERT INTO employee VALUES (name1_type('Stephen', 'X', 'Donalson'), '060606060', '198419841');
+
+1 row created.
+
+10:31:18 SQL> 
+10:31:18 SQL> 
+10:31:18 SQL> select ssn, mgrssn
+10:31:45   2  from employee
+10:31:49   3  start with ssn='198419841'
+10:32:01   4  connect by prior ssn=mgrssn;
+
+SSN       MGRSSN                                                                
+--------- ---------                                                             
+198419841                                                                       
+123456789 198419841                                                             
+987654321 123456789                                                             
+060606060 198419841                                                             
+
+10:32:11 SQL> select * from employee
+11:18:14   2  ;
+
+NAME(FNAME, MINIT, LNAME)                                                       
+--------------------------------------------------------------------------------
+SSN       MGRSSN                                                                
+--------- ---------                                                             
+NAME1_TYPE('Joseph', 'H', 'Conrad')                                             
+123456789 198419841                                                             
+                                                                                
+NAME1_TYPE('G', 'K', 'Chesterson')                                              
+987654321 123456789                                                             
+                                                                                
+NAME1_TYPE('Bernard', 'P', 'Shaw')                                              
+198419841                                                                       
+                                                                                
+
+NAME(FNAME, MINIT, LNAME)                                                       
+--------------------------------------------------------------------------------
+SSN       MGRSSN                                                                
+--------- ---------                                                             
+NAME1_TYPE('Stephen', 'X', 'Donalson')                                          
+060606060 198419841                                                             
+                                                                                
+
+11:18:15 SQL> select ssn
+11:18:30   2  from employee
+11:18:33   3  start with ssn = '198419841'
+11:18:46   4  connect by prior ssn = mgrssn;
+
+SSN                                                                             
+---------                                                                       
+198419841                                                                       
+123456789                                                                       
+987654321                                                                       
+060606060                                                                       
+
+11:18:52 SQL> select ssn
+11:19:21   2  from employee
+11:19:25   3  start with ssn = '198419841'
+11:19:33   4  connect by prior ssn = mgrssn
+11:19:41   5  order by 1;
+
+SSN                                                                             
+---------                                                                       
+060606060                                                                       
+123456789                                                                       
+198419841                                                                       
+987654321                                                                       
+
+11:19:43 SQL> describe employee
+ Name                                      Null?    Type
+ ----------------------------------------- -------- ----------------------------
+ NAME                                               NAME1_TYPE
+ SSN                                       NOT NULL CHAR(9)
+ MGRSSN                                             CHAR(9)
+
+11:30:55 SQL> 

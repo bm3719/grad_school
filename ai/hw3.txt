@@ -1,0 +1,199 @@
+Bruce Miller
+HW #3
+
+7.8
+
+a.)
+Smoke | Smoke -> Smoke
+----------------------
+  T   |        T
+  F   |        F
+
+Valid.
+  
+b.)
+Smoke | Fire | Smoke -> Fire
+----------------------------
+  T   |  T   |       T
+  T   |  F   |       F
+  F   |  T   |       T
+  F   |  F   |       T
+
+Valid.
+
+c.)
+Smoke | Fire | Smoke -> Fire | ~Smoke -> ~Fire
+----------------------------------------------
+  T   |  T   |       T       |       T        
+  T   |  F   |       F       |       T
+  F   |  T   |       T       |       F
+  F   |  F   |       T       |       T
+  
+(Smoke -> Fire) -> (~Smoke -> ~Fire)
+------------------------------------
+                T
+                T
+                F
+                T
+
+Unsatisfiable.
+
+d.)
+Smoke | Fire | ~Fire | Smoke v Fire v ~Fire
+-------------------------------------------
+  T   |  T   |   F   |          T
+  T   |  F   |   T   |          T
+  F   |  T   |   F   |          T
+  F   |  F   |   T   |          T
+  
+Valid.
+
+h.)
+Big | Dumb | ~Dumb | (Big ^ Dumb) | (Big ^ Dumb) v ~Dumb
+--------------------------------------------------------
+ T  |  T   |   F   |      T       |          T
+ T  |  F   |   T   |      F       |          T
+ F  |  T   |   F   |      F       |          F
+ F  |  F   |   T   |      F       |          T
+ 
+Valid. 
+
+7.9
+
+KB = (My -> I), (~My -> (~I ^ Mam)), ((I v Mam) -> H), (H -> Mag)
+remove ->'s
+KB = (~My v I), (My v (~I ^ Mam)), (~(I v Mam) v H), (~H v Mag)
+~ only on literals
+KB = (~My v I), (My v (~I ^ Mam)), ((~I ^ ~Mam) v H), (~H v Mag)
+apply distribution
+KB = (~My v I), ((My v ~I) ^ (My v Mam)), ((~I v H) ^ (~Mam v H)), (~H v Mag)
+assume
+KB ^ ~My
+
+(~My v I), ((My v ~I) ^ (My v Mam))
+|
+\->I, (My ^ (My v Mam))
+(My ^ (My v Mam))
+|
+\-> My, (My v Mam)
+My, ~My
+\
+\-> {}
+
+false = contradiction
+
+
+8.6 
+
+- using E for backwards E and A for upside-down A
+a.)
+Some students took French in spring 2001
+(Ex)students(x) ^ spring2001(x) -> took-French(x)
+
+b.)
+Every student who takes French passes it.
+(Ax)student(x) ^ takes-French(x) -> passes(x)
+
+c.)
+Only one student took Greek in Spring 2001
+(Ex,y)student(x) ^ spring2001(y) -> took-Greek(x, y)
+
+d.)
+The best score in Greek is always higher than the best score in French.
+(Ex)(Ay) score(x) ^ greek(x) ^ score(y) ^ french(y) -> best-score(x)
+
+e.)
+Every person who buys a policy is smart.
+(Ax)(Ey) person(x) ^ policy(y) ^ buys(x, y) -> smart(x)
+
+f.)
+No person buys an expensive policy.
+~((Ex,y) person(x) ^ expensive(y) -> buys(x, y)) 
+
+g.)
+There is an agent who sells policies only to people who are not insured.
+(Ex)(Ay) agent(x) ^ people(y) ^ sells(x,y) <-> not-insured(y)
+
+h.)
+There is a barber who shaves all men in town who do not shave themselves.
+(Ex)(Ay) barber(x) ^ men(y) ^ shaves(x,y) <-> does-not-shave-self(y)
+
+i.)
+A person born in the UK, each of whose parents is a UK citizen by birth, is 
+a UK citizen by descent.
+(Ax,y) person(x) ^ born-in-uk(x) ^ parents(y) ^ citizen(y) -> citizen(x)
+
+j.)
+A person born outside the UK, one of whose parents is a UK citizen by birth,
+is a UK citizen by descent.
+(Ax)(Ey) person(x) ^ born-outside-uk(x) ^ parents(y) ^ citizen(y) -> citizen(x)
+
+
+9.3
+
+a.) no
+b.) yes
+c.) yes
+
+9.4
+
+a.) {x/A, y/B, z/B}
+b.) {y/G(x,x), y/G(A,B)}
+
+11.1
+
+Planning and problem solving are similar in that planning is creating a 
+sequence of actions to reach a goal, while problem solving is trying out 
+different combinations of steps until the goal is reached. However, problem 
+solving often performs poorly in practice because of the assumptions of 
+always available heuristics and problem decomposability. Planning solves this 
+by repesenting states, goals, and available actions only, and then combining 
+actions to reach the goal.
+
+11.4 
+
+a.)
+
+low(monkey)
+low(box)
+high(bananas)
+at(monkey, a)
+at(bananas, b)
+at(box, c)
+handempty
+
+b.)
+
+go(x, y, z)
+    precond: at(x, y), 
+    effect: ~at(x, y), at(x, z)
+push(x, y, z, a)
+    precond: at(x, y), at(a, y), low(a)
+    effect: ~at(x, y), at(x, z), at(a, z)
+climbup(x, a)
+    precond: low(a), low(x)
+    effect: ~low(x), high(x)
+climbup(x, a)
+    precond: low(a), high(x)
+    effect: ~high(x), low(x)
+grasp(x, b)
+    precond: high(b), high(x), handempty
+    effect: ~high(b), ~handempty
+grasp(x, b)
+    precond: high(x), ~handempty
+    effect: high(b), handempty
+
+14.2
+
+a.)
+
+                                +-----+
+                                |  T  |
+                                +-----+-\
++----+              +-----+<---/        |
+| Fa |              |  G  |             |
++----+              +-----+<---\        |
+   |                  |         +----+<-/
+   \---->+-----+<----/          | Fg |
+         |  A  |                +----+
+         +-----+

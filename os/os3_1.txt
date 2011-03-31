@@ -1,0 +1,61 @@
+Bruce C. Miller
+Project 3 
+10.31.02
+
+1) Intel Pentium I processor
+   24.0 MB RAM 72-pin SIMMS
+   150Mhz clock speed
+
+2.) FreeBSD 3.5-STABLE
+
+3.) Yes, you can have paging without virtual memory. Without virtual memory,
+    main memory must contain all pages of a running process.  This is not the
+    case with paging with virtual memory.  With Virtual memory, pages can be
+    read in as necessary.
+
+    Virtual memory page size supported in the 3.* distribution of Freebsd is
+    4096 bytes.
+
+4.) Yes, the system is using segmentation. Segmentation provides logical data
+    units which allows effective handling and protection of data. It divides
+    the process address space into sections called segments. These sections are
+    based on logical divisions in the program. In FreeBSD the maximum sizes of
+    the user data segment and the stack are set to 64MB.
+
+5.) The addressable memory size is 4GB. the physical memory is 24MB 
+    with a 96MB swap partition.
+
+6.) Virtual memory is implemented on this system in the following 
+    manner:
+
+    Upon boot, and after the bus probe, the kernel starts two processes,
+    numbered 0 and 1. Process 0 is the swapper and is responsible for emergency
+    clearing of memory when the standard virtual memory algorithms aren't fast
+    enough. During normal operation FreeBSD uses the swap partition as virtual
+    memory space. It stores memory pages of processes that don't fit into
+    physical memory. Swap is used for all pages of virtual memory which contain
+    data that is not locked in memory and which can't be recreated
+    automatically. This is the majority of the virtual memory in the
+    system. Even with light memory loads, the virtual memory system slowly
+    pages out data in preparation for a possible sudden demand for memory. This
+    means that it can be more responsive to such requests.
+
+7.) included next
+
+8.) included after src 
+
+9.) with VM enabled
+    mean: 1386.4
+    standard deviation: 388.6736
+
+    without VM enabled
+    mean: 1253.45
+    standard deviation: 54.98562
+
+10.) No, it does not always take the same time to run the program with virtual
+     memory. Execution times vary according to the number of times that pages
+     need to be brought into main memory.
+
+11.) There is a measurable difference with virtual memory turned on and off. On
+     average there was a 132.95 microsecond difference with the quicker average
+     load time occurring with virtual memory off.
