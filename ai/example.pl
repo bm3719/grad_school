@@ -1,3 +1,4 @@
+% -*- mode: Prolog -*-
 % factorial 
 
 factorial(0,1).
